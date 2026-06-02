@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>豆瓣自动标记</title>
+  <link rel="stylesheet" href="styles/douban.css">
+</head>
+<body>
+  <!-- 全局顶栏 -->
+  <div class="top-bar">
+    <div class="top-bar-inner">
+      <div class="top-bar-left">
+        <span class="top-link active">首页</span>
+        <span class="top-link">电影</span>
+        <span class="top-link">读书</span>
+        <span class="top-link">音乐</span>
+        <span class="top-link">游戏</span>
+      </div>
+      <div class="top-bar-right">
+        <span class="top-link" id="historyBtn">历史记录</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面导航 -->
+  <div class="nav-bar">
+    <div class="nav-bar-inner">
+      <div class="nav-left">
+        <span class="logo">豆瓣自动标记</span>
+        <span class="nav-link active">搜索</span>
+        <span class="nav-link">设置</span>
+      </div>
+      <div class="nav-right">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="输入名称搜索..." />
+          <button id="searchBtn" class="search-btn">搜索</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="main-wrapper">
+    <div class="main-content">
+      <!-- 左侧主区域 -->
+      <div class="content-left">
+        <!-- 图片输入区 -->
+        <div class="module" id="imageInputModule">
+          <div class="module-title">
+            <span class="title-text">图片输入</span>
+            <span class="title-dots">······</span>
+            <span class="title-extra">拖拽 / 粘贴 / 选择文件 / 截图</span>
+          </div>
+          <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-content">
+              <div class="drop-icon">📷</div>
+              <p>拖拽图片到此处，或 <label class="file-label" for="fileInput">选择文件</label></p>
+              <p class="drop-hint">支持 Ctrl+V 粘贴 | Ctrl+Shift+S 截图</p>
+              <input type="file" id="fileInput" accept="image/*" style="display:none" />
+            </div>
+            <div class="drop-zone-preview" id="previewArea" style="display:none">
+              <img id="previewImage" />
+              <button class="btn-clear" id="clearImage">✕ 清除</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 搜索状态 -->
+        <div class="module" id="statusModule" style="display:none">
+          <div class="module-title">
+            <span class="title-text">搜索状态</span>
+            <span class="title-dots">······</span>
+            <span class="title-extra" id="statusText">准备中</span>
+          </div>
+          <div class="status-bar">
+            <div class="status-item">
+              <span class="status-label">OCR识别：</span>
+              <span class="status-value" id="ocrStatus">-</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">AI识别：</span>
+              <span class="status-value" id="aiStatus">-</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">豆瓣搜索：</span>
+              <span class="status-value" id="doubanStatus">-</span>
+            </div>
+            <div class="status-item">
+              <span class="status-label">资源搜索：</span>
+              <span class="status-value" id="resourceStatus">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 结果标签页 -->
+        <div class="module" id="resultModule" style="display:none">
+          <div class="module-title">
+            <span class="title-text">搜索结果</span>
+            <span class="title-dots">······</span>
+            <span class="title-extra" id="resultCount">共 0 条</span>
+          </div>
+          <div class="tabs">
+            <button class="tab active" data-tab="douban">豆瓣结果</button>
+            <button class="tab" data-tab="resource">资源站结果</button>
+          </div>
+          <div class="tab-content active" id="doubanResults">
+            <div class="result-list" id="doubanList"></div>
+          </div>
+          <div class="tab-content" id="resourceResults">
+            <div class="result-list" id="resourceList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧边栏 -->
+      <div class="content-right">
+        <!-- 使用说明 -->
+        <div class="module">
+          <div class="module-title">
+            <span class="title-text">使用说明</span>
+            <span class="title-dots">······</span>
+          </div>
+          <div class="help-content">
+            <p>1. 在上方输入框输入文字搜索</p>
+            <p>2. 或拖拽/粘贴图片进行识别</p>
+            <p>3. 点击豆瓣结果查看详情</p>
+            <p>4. 确认后自动标记到豆瓣</p>
+          </div>
+        </div>
+
+        <!-- 识别结果 -->
+        <div class="module" id="recognizedModule" style="display:none">
+          <div class="module-title">
+            <span class="title-text">识别结果</span>
+            <span class="title-dots">······</span>
+          </div>
+          <div class="recognized-content" id="recognizedText"></div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="module" id="historyModule">
+          <div class="module-title">
+            <span class="title-text">最近搜索</span>
+            <span class="title-dots">······</span>
+            <span class="title-extra" id="clearHistory">清空</span>
+          </div>
+          <div class="history-list" id="historyList">
+            <p class="empty-hint">暂无搜索记录</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 确认弹窗 -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none">
+    <div class="modal" id="confirmModal">
+      <div class="modal-header">
+        <span class="modal-title">确认标记</span>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info">
+          <img class="modal-cover" id="modalCover" />
+          <div class="modal-details">
+            <h3 id="modalTitle"></h3>
+            <div class="modal-rating" id="modalRating"></div>
+            <div class="modal-meta" id="modalMeta"></div>
+            <div class="modal-summary" id="modalSummary"></div>
+            <div class="modal-tags" id="modalTags"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div class="mark-buttons" id="markButtons"></div>
+        <button class="btn-cancel" id="modalCancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <script src="renderer.js" type="module"></script>
+</body>
+</html>
