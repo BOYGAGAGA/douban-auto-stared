@@ -1,15 +1,17 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, clipboard, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, clipboard } = require('electron');
 const path = require('path');
 
 let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1100,
-    height: 750,
-    minWidth: 800,
-    minHeight: 600,
-    show: false, // 先隐藏，加载完成后再显示
+    width: 900,
+    height: 600,
+    minWidth: 700,
+    minHeight: 500,
+    show: false,
+    frame: true,
+    autoHideMenuBar: true, // 隐藏菜单栏
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -21,11 +23,13 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'index.html'));
 
-  // 页面加载完成后显示窗口
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
     mainWindow.focus();
   });
+
+  // 隐藏菜单
+  mainWindow.setMenu(null);
 
   if (process.argv.includes('--dev')) {
     mainWindow.webContents.openDevTools();
@@ -35,20 +39,23 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
 
-  globalShortcut.register('CommandOrControl+Shift+S', () => {
-    if (mainWindow) {
-      mainWindow.webContents.send('trigger-screenshot');
-    }
-  });
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
 app.on('window-all-closed', () => {
-  globalShortcut.unregisterAll();
   if (process.platform !== 'darwin') app.quit();
+});
+
+// IPC: 打开外部链接（在主进程中调用shell.openExternal）
+ipcMain.handle('open-external', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 });
 
 // IPC: 读取剪贴板图片
@@ -61,9 +68,4 @@ ipcMain.handle('get-clipboard-image', () => {
 // IPC: 读取剪贴板文字
 ipcMain.handle('get-clipboard-text', () => {
   return clipboard.readText();
-});
-
-// IPC: 获取系统平台信息
-ipcMain.handle('get-platform', () => {
-  return process.platform;
 });

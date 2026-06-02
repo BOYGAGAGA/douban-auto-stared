@@ -1,9 +1,7 @@
-const { contextBridge, ipcRenderer, shell } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  openExternal: (url) => shell.openExternal(url),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   getClipboardImage: () => ipcRenderer.invoke('get-clipboard-image'),
   getClipboardText: () => ipcRenderer.invoke('get-clipboard-text'),
-  getPlatform: () => ipcRenderer.invoke('get-platform'),
-  onTriggerScreenshot: (callback) => ipcRenderer.on('trigger-screenshot', callback),
 });
