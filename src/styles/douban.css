@@ -326,3 +326,34 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #999999;
 }
+
+/* ===== 搜索范围选择栏 ===== */
+.scope-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  background: #f9f9f9;
+  border: 1px solid #eeeeee;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.scope-label {
+  font-size: 13px;
+  color: #333333;
+  font-weight: 500;
+}
+.scope-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #555555;
+  cursor: pointer;
+}
+.scope-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #218c38;
+}

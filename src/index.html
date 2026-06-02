@@ -15,7 +15,7 @@
       </div>
       <div class="nav-right">
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="输入名称，回车自动打开豆瓣搜索..." autofocus />
+          <input type="text" id="searchInput" placeholder="输入名称，回车搜索..." autofocus />
           <button id="searchBtn" class="search-btn">搜索</button>
         </div>
       </div>
@@ -24,15 +24,23 @@
 
   <!-- 主内容区 -->
   <div class="main-wrapper">
+    <!-- 搜索范围选择 -->
+    <div class="scope-bar">
+      <label class="scope-label">搜索范围：</label>
+      <label class="scope-item"><input type="checkbox" id="scopeMovie" checked> 电影</label>
+      <label class="scope-item"><input type="checkbox" id="scopeBook" checked> 书籍</label>
+      <label class="scope-item"><input type="checkbox" id="scopeMusic" checked> 音乐</label>
+      <label class="scope-item"><input type="checkbox" id="scopeGame" checked> 游戏</label>
+    </div>
+
     <div class="main-content">
-      <!-- 左侧主区域 -->
+      <!-- 输入区 -->
       <div class="content-left">
-        <!-- 输入区 -->
         <div class="module">
           <div class="module-title">
             <span class="title-text">输入</span>
             <span class="title-dots">······</span>
-            <span class="title-extra">粘贴文字或图片自动搜索</span>
+            <span class="title-extra">粘贴文字或图片</span>
           </div>
           <div class="drop-zone" id="dropZone">
             <div class="drop-zone-content" id="dropContent">
@@ -57,12 +65,8 @@
             <span class="title-extra" id="resultKeyword"></span>
           </div>
           <div class="result-actions">
-            <button class="btn-action btn-douban" id="btnDouban">
-              🔍 在豆瓣中搜索
-            </button>
-            <button class="btn-action btn-resource" id="btnResource">
-              📦 搜索资源
-            </button>
+            <button class="btn-action btn-douban" id="btnDouban">🔍 在豆瓣中搜索</button>
+            <button class="btn-action btn-resource" id="btnResource">📦 搜索资源</button>
           </div>
           <div class="result-info" id="resultInfo"></div>
         </div>
@@ -79,30 +83,13 @@
           </div>
         </div>
       </div>
-
-      <!-- 右侧边栏 -->
-      <div class="content-right">
-        <div class="module">
-          <div class="module-title">
-            <span class="title-text">说明</span>
-            <span class="title-dots">······</span>
-          </div>
-          <div class="help-content">
-            <p>1. 输入文字回车 → 打开豆瓣</p>
-            <p>2. 粘贴图片 → OCR识别 → 打开豆瓣</p>
-            <p>3. 点击「搜索资源」打开资源站</p>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
   <script>
-    // 状态
     let currentKeyword = '';
     let searchHistory = JSON.parse(localStorage.getItem('douban-history') || '[]');
 
-    // DOM
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const dropZone = document.getElementById('dropZone');
@@ -120,22 +107,21 @@
     const historyList = document.getElementById('historyList');
     const clearHistory = document.getElementById('clearHistory');
 
-    // 初始化
+    const scopeMovie = document.getElementById('scopeMovie');
+    const scopeBook = document.getElementById('scopeBook');
+    const scopeMusic = document.getElementById('scopeMusic');
+    const scopeGame = document.getElementById('scopeGame');
+
     renderHistory();
 
-    // 打开外部链接
     async function openUrl(url) {
       try {
-        const result = await window.electronAPI.openExternal(url);
-        if (!result.success) {
-          console.error('打开链接失败:', result.error);
-        }
+        await window.electronAPI.openExternal(url);
       } catch (err) {
         console.error('打开链接错误:', err);
       }
     }
 
-    // 搜索
     searchBtn.addEventListener('click', () => doSearch(searchInput.value));
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') doSearch(searchInput.value);
@@ -148,31 +134,45 @@
       searchInput.value = text;
       addHistory(text);
       showResult(text);
-      // 自动打开豆瓣
       openDouban(text);
     }
 
-    // 显示结果区域
     function showResult(keyword) {
       resultModule.style.display = 'block';
       resultKeyword.textContent = keyword;
       resultInfo.innerHTML = `<p>搜索: <strong>${keyword}</strong></p>`;
     }
 
-    // 打开豆瓣搜索
-    function openDouban(keyword) {
-      const url = `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(keyword)}&cat=1002`;
-      openUrl(url);
-      resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣搜索</p>`;
+    // 获取选中的分类
+    function getSelectedCategories() {
+      const cats = [];
+      if (scopeMovie.checked) cats.push({ name: '电影', cat: '1002', url: 'https://search.douban.com/movie/subject_search' });
+      if (scopeBook.checked) cats.push({ name: '书籍', cat: '1001', url: 'https://search.douban.com/book/subject_search' });
+      if (scopeMusic.checked) cats.push({ name: '音乐', cat: '1003', url: 'https://search.douban.com/music/subject_search' });
+      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1013', url: 'https://search.douban.com/game/subject_search' });
+      return cats;
     }
 
-    // 豆瓣按钮
+    // 打开豆瓣搜索（根据选中范围）
+    function openDouban(keyword) {
+      const categories = getSelectedCategories();
+      if (categories.length === 0) {
+        resultInfo.innerHTML += '<p style="color:#cc3333">请至少选择一个搜索范围</p>';
+        return;
+      }
+
+      categories.forEach(cat => {
+        const url = `${cat.url}?search_text=${encodeURIComponent(keyword)}&cat=${cat.cat}`;
+        openUrl(url);
+        resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣${cat.name}搜索</p>`;
+      });
+    }
+
     btnDouban.addEventListener('click', () => {
       if (!currentKeyword) return;
       openDouban(currentKeyword);
     });
 
-    // 资源站按钮（不自动打开）
     btnResource.addEventListener('click', () => {
       if (!currentKeyword) return;
       const url = `https://www.xn--wcv59z.com/?s=${encodeURIComponent(currentKeyword)}`;
@@ -185,19 +185,15 @@
       e.preventDefault();
       dropZone.classList.add('drag-over');
     });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('drag-over');
-    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-      const files = e.dataTransfer.files;
-      if (files.length > 0 && files[0].type.startsWith('image/')) {
-        handleImage(files[0]);
+      if (e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type.startsWith('image/')) {
+        handleImage(e.dataTransfer.files[0]);
       }
     });
 
-    // 点击选择文件
     dropZone.addEventListener('click', (e) => {
       if (e.target.classList.contains('file-label') || e.target.closest('.file-label')) return;
       if (e.target.classList.contains('btn-clear') || e.target.closest('.btn-clear')) return;
@@ -207,31 +203,21 @@
       if (e.target.files.length > 0) handleImage(e.target.files[0]);
     });
 
-    // 粘贴
     document.addEventListener('paste', async (e) => {
       if (document.activeElement === searchInput) return;
-
       const items = e.clipboardData?.items;
       if (!items) return;
-
-      // 图片
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           e.preventDefault();
-          const file = item.getAsFile();
-          if (file) handleImage(file);
+          if (item.getAsFile()) handleImage(item.getAsFile());
           return;
         }
       }
-
-      // 文字
       const text = e.clipboardData.getData('text/plain');
-      if (text && text.trim()) {
-        doSearch(text.trim());
-      }
+      if (text && text.trim()) doSearch(text.trim());
     });
 
-    // 清除图片
     clearImage.addEventListener('click', (e) => {
       e.stopPropagation();
       previewArea.style.display = 'none';
@@ -241,9 +227,7 @@
       fileInput.value = '';
     });
 
-    // 处理图片
     async function handleImage(file) {
-      // 预览
       const reader = new FileReader();
       reader.onload = (e) => {
         previewImage.src = e.target.result;
@@ -252,7 +236,6 @@
       };
       reader.readAsDataURL(file);
 
-      // OCR
       ocrResult.textContent = '识别中...';
       resultModule.style.display = 'block';
       resultInfo.innerHTML = '<p>🔄 正在识别图片...</p>';
@@ -260,7 +243,6 @@
       try {
         const base64 = await fileToBase64(file);
         const text = await doOCR(base64, file.type);
-
         if (text && text.trim().length > 1) {
           const cleaned = cleanText(text);
           ocrResult.textContent = `识别结果: ${cleaned}`;
@@ -269,7 +251,6 @@
           searchInput.value = cleaned;
           addHistory(cleaned);
           showResult(cleaned);
-          // 自动打开豆瓣
           openDouban(cleaned);
         } else {
           ocrResult.textContent = '未能识别';
@@ -295,7 +276,6 @@
         const result = await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng');
         return result.data.text;
       }
-
       return new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
@@ -303,9 +283,7 @@
           try {
             const result = await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng');
             resolve(result.data.text);
-          } catch (e) {
-            reject(e);
-          }
+          } catch (e) { reject(e); }
         };
         script.onerror = () => reject(new Error('无法加载OCR库'));
         document.head.appendChild(script);
@@ -316,7 +294,6 @@
       return text.replace(/\s+/g, ' ').replace(/[「」『』【】《》\[\]\{\}]/g, '').trim().substring(0, 50);
     }
 
-    // 历史
     function addHistory(text) {
       const now = new Date();
       const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
