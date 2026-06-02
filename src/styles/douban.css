@@ -705,3 +705,76 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #999999;
 }
+
+/* ===== 操作按钮 ===== */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.btn-action {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-douban {
+  background: #218c38;
+  color: white;
+}
+.btn-douban:hover {
+  background: #1a7030;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33,140,56,0.3);
+}
+.btn-resource {
+  background: #2d78b5;
+  color: white;
+}
+.btn-resource:hover {
+  background: #246094;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45,120,181,0.3);
+}
+.btn-icon {
+  font-size: 18px;
+}
+.action-info {
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.action-info p {
+  margin: 4px 0;
+}
+
+/* ===== OCR结果 ===== */
+.ocr-result {
+  background: #f0f5e9;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #333;
+  margin: 8px 0;
+  word-break: break-all;
+}
+
+/* ===== 状态内容 ===== */
+.status-content {
+  font-size: 12px;
+  line-height: 1.8;
+  color: #666;
+}
+.status-content p {
+  margin: 4px 0;
+}
