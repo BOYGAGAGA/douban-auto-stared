@@ -24,7 +24,7 @@
       </div>
       <div class="nav-right">
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="输入电影、书籍、音乐名称..." autofocus />
+          <input type="text" id="searchInput" placeholder="输入电影、书籍、音乐名称，回车自动搜索..." autofocus />
           <button id="searchBtn" class="search-btn">搜索</button>
         </div>
       </div>
@@ -41,7 +41,7 @@
           <div class="module-title">
             <span class="title-text">快速输入</span>
             <span class="title-dots">······</span>
-            <span class="title-extra">粘贴文字或图片自动搜索</span>
+            <span class="title-extra">粘贴文字或图片自动搜索并打开豆瓣</span>
           </div>
           <div class="drop-zone" id="dropZone">
             <div class="drop-zone-content" id="dropContent">
@@ -58,24 +58,13 @@
           </div>
         </div>
 
-        <!-- 操作按钮区 -->
-        <div class="module" id="actionModule" style="display:none">
+        <!-- 状态信息 -->
+        <div class="module" id="statusModule" style="display:none">
           <div class="module-title">
-            <span class="title-text">搜索结果</span>
+            <span class="title-text">操作状态</span>
             <span class="title-dots">······</span>
-            <span class="title-extra" id="searchKeyword"></span>
           </div>
-          <div class="action-buttons">
-            <button class="btn-action btn-douban" id="btnDouban">
-              <span class="btn-icon">🔍</span>
-              <span>在豆瓣中搜索</span>
-            </button>
-            <button class="btn-action btn-resource" id="btnResource">
-              <span class="btn-icon">📦</span>
-              <span>搜索资源</span>
-            </button>
-          </div>
-          <div class="action-info" id="actionInfo"></div>
+          <div class="status-content" id="statusContent"></div>
         </div>
 
         <!-- 历史记录 -->
@@ -100,22 +89,15 @@
             <span class="title-dots">······</span>
           </div>
           <div class="help-content">
-            <p><strong>方法一：</strong>直接输入文字搜索</p>
-            <p><strong>方法二：</strong>粘贴图片自动识别</p>
-            <p><strong>方法三：</strong>拖拽图片到窗口</p>
+            <p><strong>自动流程：</strong></p>
+            <p>1. 输入文字或粘贴图片</p>
+            <p>2. 自动打开豆瓣搜索结果</p>
+            <p>3. 同时打开资源站搜索</p>
             <hr style="border:none;border-top:1px solid #eee;margin:10px 0">
-            <p>识别后点击按钮打开豆瓣</p>
-            <p>在Edge浏览器中完成标记</p>
+            <p><strong>快捷键：</strong></p>
+            <p>Enter - 搜索并打开</p>
+            <p>Ctrl+V - 粘贴图片/文字</p>
           </div>
-        </div>
-
-        <!-- 状态信息 -->
-        <div class="module" id="statusModule" style="display:none">
-          <div class="module-title">
-            <span class="title-text">识别状态</span>
-            <span class="title-dots">······</span>
-          </div>
-          <div class="status-content" id="statusContent"></div>
         </div>
       </div>
     </div>
@@ -123,12 +105,9 @@
 
   <script>
     // 使用preload暴露的API
-    const shell = {
-      openExternal: (url) => window.electronAPI.openExternal(url)
-    };
+    const openExternal = (url) => window.electronAPI.openExternal(url);
 
     // 状态
-    let currentKeyword = '';
     let searchHistory = JSON.parse(localStorage.getItem('douban-history') || '[]');
 
     // DOM元素
@@ -141,11 +120,6 @@
     const previewImage = document.getElementById('previewImage');
     const ocrResult = document.getElementById('ocrResult');
     const clearImage = document.getElementById('clearImage');
-    const actionModule = document.getElementById('actionModule');
-    const searchKeyword = document.getElementById('searchKeyword');
-    const btnDouban = document.getElementById('btnDouban');
-    const btnResource = document.getElementById('btnResource');
-    const actionInfo = document.getElementById('actionInfo');
     const statusModule = document.getElementById('statusModule');
     const statusContent = document.getElementById('statusContent');
     const historyList = document.getElementById('historyList');
@@ -154,7 +128,7 @@
     // 初始化
     renderHistory();
 
-    // 文字搜索
+    // 文字搜索 - 自动打开豆瓣
     searchBtn.addEventListener('click', () => doSearch(searchInput.value));
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') doSearch(searchInput.value);
@@ -163,34 +137,26 @@
     function doSearch(text) {
       text = (text || '').trim();
       if (!text) return;
-      currentKeyword = text;
       searchInput.value = text;
-      showActions(text);
       addHistory(text);
+      openDoubanSearch(text);
     }
 
-    // 显示操作按钮
-    function showActions(keyword) {
-      actionModule.style.display = 'block';
-      searchKeyword.textContent = keyword;
-      actionInfo.innerHTML = `<p>搜索关键词: <strong>${keyword}</strong></p>`;
+    // 打开豆瓣搜索（自动）
+    function openDoubanSearch(keyword) {
+      statusModule.style.display = 'block';
+      statusContent.innerHTML = `<p>正在打开豆瓣搜索: <strong>${keyword}</strong></p>`;
+
+      // 打开豆瓣搜索页面
+      const url = `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(keyword)}&cat=1002`;
+      openExternal(url);
+
+      // 同时打开资源站
+      const resourceUrl = `https://www.xn--wcv59z.com/?s=${encodeURIComponent(keyword)}`;
+      openExternal(resourceUrl);
+
+      statusContent.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣和资源站搜索</p>`;
     }
-
-    // 打开豆瓣搜索
-    btnDouban.addEventListener('click', () => {
-      if (!currentKeyword) return;
-      const url = `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(currentKeyword)}`;
-      shell.openExternal(url);
-      actionInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣搜索</p>`;
-    });
-
-    // 打开资源站搜索
-    btnResource.addEventListener('click', () => {
-      if (!currentKeyword) return;
-      const url = `https://www.xn--wcv59z.com/?s=${encodeURIComponent(currentKeyword)}`;
-      shell.openExternal(url);
-      actionInfo.innerHTML += `<p style="color:#218c38">✓ 已打开资源站搜索</p>`;
-    });
 
     // 图片拖拽
     dropZone.addEventListener('dragover', (e) => {
@@ -253,7 +219,7 @@
       fileInput.value = '';
     });
 
-    // 处理图片
+    // 处理图片 - OCR识别后自动打开豆瓣
     async function handleImage(file) {
       // 显示预览
       const reader = new FileReader();
@@ -266,27 +232,30 @@
 
       // OCR识别
       statusModule.style.display = 'block';
-      statusContent.innerHTML = '<p>正在识别图片文字...</p>';
+      statusContent.innerHTML = '<p>🔄 正在识别图片文字...</p>';
       ocrResult.textContent = '识别中...';
 
       try {
         // 转base64
         const base64 = await fileToBase64(file);
 
-        // 调用OCR (使用Tesseract.js CDN版本)
+        // 调用OCR
         const text = await doOCR(base64, file.type);
         if (text && text.trim().length > 1) {
           const cleaned = cleanText(text);
           ocrResult.textContent = `识别结果: ${cleaned}`;
-          statusContent.innerHTML = `<p style="color:#218c38">✓ 识别成功</p><p>${cleaned}</p>`;
+          statusContent.innerHTML = `<p style="color:#218c38">✓ 识别成功: ${cleaned}</p>`;
+
+          // 自动搜索并打开
+          searchInput.value = cleaned;
           doSearch(cleaned);
         } else {
           ocrResult.textContent = '未能识别出文字';
-          statusContent.innerHTML = '<p style="color:#cc3333">未能识别出文字内容</p>';
+          statusContent.innerHTML = '<p style="color:#cc3333">❌ 未能识别出文字内容</p>';
         }
       } catch (err) {
         ocrResult.textContent = '识别失败';
-        statusContent.innerHTML = `<p style="color:#cc3333">识别失败: ${err.message}</p>`;
+        statusContent.innerHTML = `<p style="color:#cc3333">❌ 识别失败: ${err.message}</p>`;
       }
     }
 
@@ -303,7 +272,7 @@
       });
     }
 
-    // OCR识别 (简化版，使用正则提取可能的标题)
+    // OCR识别
     async function doOCR(base64, mimeType) {
       // 尝试使用window.Tesseract（如果已加载）
       if (window.Tesseract) {
@@ -323,7 +292,7 @@
             reject(e);
           }
         };
-        script.onerror = () => reject(new Error('无法加载OCR库'));
+        script.onerror = () => reject(new Error('无法加载OCR库，请检查网络连接'));
         document.head.appendChild(script);
       });
     }

@@ -15,13 +15,13 @@ delete env.ELECTRON_RUN_AS_NODE;
 // 获取参数（排除前两个 node 和 start.js）
 const args = process.argv.slice(2);
 
-// 启动 Electron 应用
+// 启动 Electron 应用（隐藏控制台窗口）
 const child = spawn(electronPath, [path.join(__dirname), ...args], {
   env,
-  stdio: 'inherit',
-  windowsHide: false,
+  stdio: 'ignore',  // 忽略标准IO，不显示终端
+  windowsHide: true, // Windows下隐藏窗口
+  detached: true,    // 分离进程
 });
 
-child.on('close', (code) => {
-  process.exit(code || 0);
-});
+child.unref(); // 不等待子进程结束
+process.exit(0); // 立即退出父进程
