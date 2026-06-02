@@ -122,6 +122,15 @@
       }
     }
 
+    // 打开豆瓣搜索（可自动关闭无结果页面）
+    async function openDoubanSearch(url) {
+      try {
+        await window.electronAPI.openSearch(url);
+      } catch (err) {
+        console.error('打开搜索错误:', err);
+      }
+    }
+
     searchBtn.addEventListener('click', () => doSearch(searchInput.value));
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') doSearch(searchInput.value);
@@ -149,7 +158,7 @@
       if (scopeMovie.checked) cats.push({ name: '电影', cat: '1002', url: 'https://www.douban.com/search' });
       if (scopeBook.checked) cats.push({ name: '书籍', cat: '1001', url: 'https://www.douban.com/search' });
       if (scopeMusic.checked) cats.push({ name: '音乐', cat: '1003', url: 'https://www.douban.com/search' });
-      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1013', url: 'https://www.douban.com/search' });
+      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1007', url: 'https://www.douban.com/search' });
       return cats;
     }
 
@@ -163,7 +172,7 @@
 
       categories.forEach(cat => {
         const url = `${cat.url}?q=${encodeURIComponent(keyword)}&cat=${cat.cat}`;
-        openUrl(url);
+        openDoubanSearch(url);
         resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣${cat.name}搜索</p>`;
       });
     }
