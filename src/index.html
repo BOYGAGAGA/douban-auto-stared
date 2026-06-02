@@ -24,15 +24,6 @@
 
   <!-- 主内容区 -->
   <div class="main-wrapper">
-    <!-- 搜索范围选择 -->
-    <div class="scope-bar">
-      <label class="scope-label">搜索范围：</label>
-      <label class="scope-item"><input type="checkbox" id="scopeMovie" checked> 电影</label>
-      <label class="scope-item"><input type="checkbox" id="scopeBook" checked> 书籍</label>
-      <label class="scope-item"><input type="checkbox" id="scopeMusic" checked> 音乐</label>
-      <label class="scope-item"><input type="checkbox" id="scopeGame" checked> 游戏</label>
-    </div>
-
     <div class="main-content">
       <!-- 输入区 -->
       <div class="content-left">
@@ -107,11 +98,6 @@
     const historyList = document.getElementById('historyList');
     const clearHistory = document.getElementById('clearHistory');
 
-    const scopeMovie = document.getElementById('scopeMovie');
-    const scopeBook = document.getElementById('scopeBook');
-    const scopeMusic = document.getElementById('scopeMusic');
-    const scopeGame = document.getElementById('scopeGame');
-
     renderHistory();
 
     async function openUrl(url) {
@@ -152,29 +138,11 @@
       resultInfo.innerHTML = `<p>搜索: <strong>${keyword}</strong></p>`;
     }
 
-    // 获取选中的分类
-    function getSelectedCategories() {
-      const cats = [];
-      if (scopeMovie.checked) cats.push({ name: '电影', cat: '1002', url: 'https://www.douban.com/search' });
-      if (scopeBook.checked) cats.push({ name: '书籍', cat: '1001', url: 'https://www.douban.com/search' });
-      if (scopeMusic.checked) cats.push({ name: '音乐', cat: '1003', url: 'https://www.douban.com/search' });
-      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1007', url: 'https://www.douban.com/search' });
-      return cats;
-    }
-
-    // 打开豆瓣搜索（根据选中范围）
+    // 打开豆瓣搜索（统一搜索）
     function openDouban(keyword) {
-      const categories = getSelectedCategories();
-      if (categories.length === 0) {
-        resultInfo.innerHTML += '<p style="color:#cc3333">请至少选择一个搜索范围</p>';
-        return;
-      }
-
-      categories.forEach(cat => {
-        const url = `${cat.url}?q=${encodeURIComponent(keyword)}&cat=${cat.cat}`;
-        openDoubanSearch(url);
-        resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣${cat.name}搜索</p>`;
-      });
+      const url = `https://www.douban.com/search?q=${encodeURIComponent(keyword)}`;
+      openDoubanSearch(url);
+      resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣搜索</p>`;
     }
 
     btnDouban.addEventListener('click', () => {
