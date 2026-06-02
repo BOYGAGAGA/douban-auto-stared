@@ -122,10 +122,10 @@
       }
     }
 
-    // 打开豆瓣搜索（可自动关闭无结果页面）
+    // 打开豆瓣搜索（用Edge浏览器）
     async function openDoubanSearch(url) {
       try {
-        await window.electronAPI.openSearch(url);
+        await window.electronAPI.openExternal(url);
       } catch (err) {
         console.error('打开搜索错误:', err);
       }
