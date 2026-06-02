@@ -146,10 +146,10 @@
     // 获取选中的分类
     function getSelectedCategories() {
       const cats = [];
-      if (scopeMovie.checked) cats.push({ name: '电影', cat: '1002', url: 'https://search.douban.com/movie/subject_search' });
-      if (scopeBook.checked) cats.push({ name: '书籍', cat: '1001', url: 'https://search.douban.com/book/subject_search' });
-      if (scopeMusic.checked) cats.push({ name: '音乐', cat: '1003', url: 'https://search.douban.com/music/subject_search' });
-      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1013', url: 'https://search.douban.com/game/subject_search' });
+      if (scopeMovie.checked) cats.push({ name: '电影', cat: '1002', url: 'https://www.douban.com/search' });
+      if (scopeBook.checked) cats.push({ name: '书籍', cat: '1001', url: 'https://www.douban.com/search' });
+      if (scopeMusic.checked) cats.push({ name: '音乐', cat: '1003', url: 'https://www.douban.com/search' });
+      if (scopeGame.checked) cats.push({ name: '游戏', cat: '1013', url: 'https://www.douban.com/search' });
       return cats;
     }
 
@@ -162,7 +162,7 @@
       }
 
       categories.forEach(cat => {
-        const url = `${cat.url}?search_text=${encodeURIComponent(keyword)}&cat=${cat.cat}`;
+        const url = `${cat.url}?q=${encodeURIComponent(keyword)}&cat=${cat.cat}`;
         openUrl(url);
         resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣${cat.name}搜索</p>`;
       });
