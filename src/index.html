@@ -170,7 +170,17 @@
 
     searchBtn.addEventListener('click', () => doSearch(searchInput.value));
     searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') doSearch(searchInput.value);
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        doSearch(searchInput.value);
+      }
+    });
+
+    // 防止设置弹窗中的输入框触发搜索
+    document.querySelectorAll('.setting-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+      });
     });
 
     function doSearch(text) {
@@ -226,6 +236,8 @@
     });
 
     document.addEventListener('paste', async (e) => {
+      // 忽略设置弹窗中的粘贴
+      if (settingsModal.style.display === 'flex') return;
       if (document.activeElement === searchInput) return;
       const items = e.clipboardData?.items;
       if (!items) return;
