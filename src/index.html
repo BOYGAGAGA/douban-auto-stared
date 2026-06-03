@@ -25,19 +25,14 @@
   <!-- 主内容区 -->
   <div class="main-wrapper">
     <div class="main-content">
-      <!-- 输入区 -->
       <div class="content-left">
+        <!-- 输入区 -->
         <div class="module">
-          <div class="module-title">
-            <span class="title-text">输入</span>
-            <span class="title-dots">······</span>
-            <span class="title-extra">粘贴文字或图片</span>
-          </div>
           <div class="drop-zone" id="dropZone">
             <div class="drop-zone-content" id="dropContent">
               <div class="drop-icon">📋</div>
-              <p><strong>Ctrl+V</strong> 粘贴文字或图片</p>
-              <p class="sub-hint">或拖拽图片 · <label class="file-label" for="fileInput">选择文件</label></p>
+              <p><strong>Ctrl+V</strong> 粘贴</p>
+              <p class="sub-hint">拖拽图片 · <label class="file-label" for="fileInput">选择文件</label></p>
               <input type="file" id="fileInput" accept="image/*" style="display:none" />
             </div>
             <div class="drop-zone-preview" id="previewArea" style="display:none">
@@ -108,7 +103,6 @@
       }
     }
 
-    // 打开豆瓣搜索（用Edge浏览器）
     async function openDoubanSearch(url) {
       try {
         await window.electronAPI.openExternal(url);
@@ -138,7 +132,6 @@
       resultInfo.innerHTML = `<p>搜索: <strong>${keyword}</strong></p>`;
     }
 
-    // 打开豆瓣搜索（统一搜索）
     function openDouban(keyword) {
       const url = `https://www.douban.com/search?q=${encodeURIComponent(keyword)}`;
       openDoubanSearch(url);
@@ -280,15 +273,23 @@
       renderHistory();
     }
 
+    // 删除单条历史
+    function deleteHistory(index) {
+      searchHistory.splice(index, 1);
+      localStorage.setItem('douban-history', JSON.stringify(searchHistory));
+      renderHistory();
+    }
+
     function renderHistory() {
       if (searchHistory.length === 0) {
         historyList.innerHTML = '<p class="empty-hint">暂无记录</p>';
         return;
       }
-      historyList.innerHTML = searchHistory.map(item =>
-        `<div class="history-item" onclick="doSearch('${item.text.replace(/'/g, "\\'")}')">
-          <span class="history-text">${item.text}</span>
+      historyList.innerHTML = searchHistory.map((item, index) =>
+        `<div class="history-item">
+          <span class="history-text" onclick="doSearch('${item.text.replace(/'/g, "\\'")}')">${item.text}</span>
           <span class="history-time">${item.time}</span>
+          <span class="history-delete" onclick="deleteHistory(${index})" title="删除">✕</span>
         </div>`
       ).join('');
     }

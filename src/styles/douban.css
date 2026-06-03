@@ -357,3 +357,18 @@ body {
   cursor: pointer;
   accent-color: #218c38;
 }
+
+/* ===== 历史删除按钮 ===== */
+.history-delete {
+  color: #cccccc;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-left: 6px;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+.history-delete:hover {
+  color: #cc3333;
+  background: #ffeeee;
+}
