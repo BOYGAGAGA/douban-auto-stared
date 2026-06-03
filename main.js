@@ -17,6 +17,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
+    icon: path.join(__dirname, 'icon.png'),
     title: '豆瓣自动标记',
     backgroundColor: '#ffffff',
   });
