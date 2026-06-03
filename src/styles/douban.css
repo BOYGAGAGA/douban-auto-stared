@@ -498,3 +498,17 @@ body {
 .btn-save:hover {
   background: #1a7030;
 }
+
+.setting-steps {
+  font-size: 12px;
+  color: #666;
+  padding-left: 20px;
+  line-height: 2;
+}
+.setting-steps a {
+  color: #2777bb;
+  text-decoration: none;
+}
+.setting-steps a:hover {
+  text-decoration: underline;
+}
