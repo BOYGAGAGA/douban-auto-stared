@@ -25,7 +25,7 @@ body {
   z-index: 99;
 }
 .nav-bar-inner {
-  max-width: 900px;
+  max-width: 700px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -87,9 +87,9 @@ body {
 
 /* ===== 主内容布局 ===== */
 .main-wrapper {
-  max-width: 900px;
+  max-width: 700px;
   margin: 0 auto;
-  padding: 20px 16px;
+  padding: 16px;
 }
 .main-content {
   display: flex;
@@ -371,4 +371,29 @@ body {
 .history-delete:hover {
   color: #cc3333;
   background: #ffeeee;
+}
+
+/* ===== 搜索目标选择栏 ===== */
+.target-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 14px;
+  background: #f9f9f9;
+  border: 1px solid #eeeeee;
+  border-radius: 6px;
+}
+.target-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333333;
+  cursor: pointer;
+}
+.target-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #218c38;
 }

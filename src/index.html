@@ -26,6 +26,18 @@
   <div class="main-wrapper">
     <div class="main-content">
       <div class="content-left">
+        <!-- 搜索目标选择 -->
+        <div class="module">
+          <div class="target-bar">
+            <label class="target-item">
+              <input type="checkbox" id="targetDouban" checked> 豆瓣
+            </label>
+            <label class="target-item">
+              <input type="checkbox" id="targetResource"> 资源站
+            </label>
+          </div>
+        </div>
+
         <!-- 输入区 -->
         <div class="module">
           <div class="drop-zone" id="dropZone">
@@ -41,20 +53,6 @@
               <button class="btn-clear" id="clearImage">✕ 清除</button>
             </div>
           </div>
-        </div>
-
-        <!-- 操作结果 -->
-        <div class="module" id="resultModule" style="display:none">
-          <div class="module-title">
-            <span class="title-text">搜索</span>
-            <span class="title-dots">······</span>
-            <span class="title-extra" id="resultKeyword"></span>
-          </div>
-          <div class="result-actions">
-            <button class="btn-action btn-douban" id="btnDouban">🔍 在豆瓣中搜索</button>
-            <button class="btn-action btn-resource" id="btnResource">📦 搜索资源</button>
-          </div>
-          <div class="result-info" id="resultInfo"></div>
         </div>
 
         <!-- 历史记录 -->
@@ -76,6 +74,9 @@
     let currentKeyword = '';
     let searchHistory = JSON.parse(localStorage.getItem('douban-history') || '[]');
 
+    // 加载保存的目标选择
+    const savedTargets = JSON.parse(localStorage.getItem('douban-targets') || '{"douban":true,"resource":false}');
+
     const searchInput = document.getElementById('searchInput');
     const searchBtn = document.getElementById('searchBtn');
     const dropZone = document.getElementById('dropZone');
@@ -85,13 +86,25 @@
     const previewImage = document.getElementById('previewImage');
     const ocrResult = document.getElementById('ocrResult');
     const clearImage = document.getElementById('clearImage');
-    const resultModule = document.getElementById('resultModule');
-    const resultKeyword = document.getElementById('resultKeyword');
-    const btnDouban = document.getElementById('btnDouban');
-    const btnResource = document.getElementById('btnResource');
-    const resultInfo = document.getElementById('resultInfo');
+    const targetDouban = document.getElementById('targetDouban');
+    const targetResource = document.getElementById('targetResource');
     const historyList = document.getElementById('historyList');
     const clearHistory = document.getElementById('clearHistory');
+
+    // 初始化目标选择状态
+    targetDouban.checked = savedTargets.douban;
+    targetResource.checked = savedTargets.resource;
+
+    // 保存目标选择
+    function saveTargets() {
+      localStorage.setItem('douban-targets', JSON.stringify({
+        douban: targetDouban.checked,
+        resource: targetResource.checked
+      }));
+    }
+
+    targetDouban.addEventListener('change', saveTargets);
+    targetResource.addEventListener('change', saveTargets);
 
     renderHistory();
 
@@ -122,33 +135,28 @@
       currentKeyword = text;
       searchInput.value = text;
       addHistory(text);
-      showResult(text);
-      openDouban(text);
+      openSearch(text);
     }
 
-    function showResult(keyword) {
-      resultModule.style.display = 'block';
-      resultKeyword.textContent = keyword;
-      resultInfo.innerHTML = `<p>搜索: <strong>${keyword}</strong></p>`;
+    function openSearch(keyword) {
+      // 检查是否至少选择了一个目标
+      if (!targetDouban.checked && !targetResource.checked) {
+        alert('请至少选择一个搜索目标');
+        return;
+      }
+
+      // 打开豆瓣
+      if (targetDouban.checked) {
+        const url = `https://www.douban.com/search?q=${encodeURIComponent(keyword)}`;
+        openDoubanSearch(url);
+      }
+
+      // 打开资源站
+      if (targetResource.checked) {
+        const url = `https://www.xn--wcv59z.com/search?q=${encodeURIComponent(keyword)}&type=&mode=1`;
+        openUrl(url);
+      }
     }
-
-    function openDouban(keyword) {
-      const url = `https://www.douban.com/search?q=${encodeURIComponent(keyword)}`;
-      openDoubanSearch(url);
-      resultInfo.innerHTML += `<p style="color:#218c38">✓ 已打开豆瓣搜索</p>`;
-    }
-
-    btnDouban.addEventListener('click', () => {
-      if (!currentKeyword) return;
-      openDouban(currentKeyword);
-    });
-
-    btnResource.addEventListener('click', () => {
-      if (!currentKeyword) return;
-      const url = `https://www.xn--wcv59z.com/?s=${encodeURIComponent(currentKeyword)}`;
-      openUrl(url);
-      resultInfo.innerHTML += `<p style="color:#2d78b5">✓ 已打开资源站</p>`;
-    });
 
     // 拖拽
     dropZone.addEventListener('dragover', (e) => {
@@ -216,12 +224,10 @@
         if (text && text.trim().length > 1) {
           const cleaned = cleanText(text);
           ocrResult.textContent = `识别结果: ${cleaned}`;
-          resultInfo.innerHTML = `<p style="color:#218c38">✓ 识别成功: ${cleaned}</p>`;
           currentKeyword = cleaned;
           searchInput.value = cleaned;
           addHistory(cleaned);
-          showResult(cleaned);
-          openDouban(cleaned);
+          openSearch(cleaned);
         } else {
           ocrResult.textContent = '未能识别';
           resultInfo.innerHTML = '<p style="color:#cc3333">❌ 未能识别文字</p>';
