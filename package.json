@@ -5,7 +5,33 @@
   "main": "main.js",
   "scripts": {
     "start": "node start.js",
-    "dev": "node start.js --dev"
+    "dev": "node start.js --dev",
+    "build": "npx electron-builder --win",
+    "build:dir": "npx electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.douban.auto-stared",
+    "productName": "豆瓣自动标记",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "start.js",
+      "icon.png",
+      "src/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "豆瓣自动标记"
+    }
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
@@ -14,6 +40,7 @@
   "author": "BOYGAGA",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.0.0"
+    "electron": "^33.0.0",
+    "electron-builder": "^24.0.0"
   }
 }
