@@ -123,8 +123,8 @@
     // ===== 分隔符解析（逗号/空格/换行/顿号/分号） =====
     function parseKeywords(text) {
       if (!text) return [];
-      // 用逗号、顿号、分号、换行分隔
-      const items = text.split(/[,，、;；\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+      // 用逗号、顿号、分号、换行、回车分隔
+      const items = text.split(/[,，、;；\r\n]+/).map(s => s.trim()).filter(s => s.length > 0);
       return [...new Set(items)]; // 去重
     }
 
