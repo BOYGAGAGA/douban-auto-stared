@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="styles/douban.css">
 </head>
 <body>
-  <!-- 导航栏 -->
   <div class="nav-bar">
     <div class="nav-bar-inner">
       <div class="nav-left">
@@ -16,7 +15,7 @@
       </div>
       <div class="nav-right">
         <div class="search-box">
-          <input type="text" id="searchInput" placeholder="输入名称，回车搜索..." autofocus />
+          <input type="text" id="searchInput" placeholder="输入名称（多个用逗号/空格/换行分隔）" autofocus />
           <button id="searchBtn" class="search-btn">搜索</button>
           <button id="settingsBtn" class="btn-settings" title="设置">⚙</button>
         </div>
@@ -24,23 +23,16 @@
     </div>
   </div>
 
-  <!-- 主内容区 -->
   <div class="main-wrapper">
     <div class="main-content">
       <div class="content-left">
-        <!-- 搜索目标选择 -->
         <div class="module">
           <div class="target-bar">
-            <label class="target-item">
-              <input type="checkbox" id="targetDouban" checked> 豆瓣
-            </label>
-            <label class="target-item">
-              <input type="checkbox" id="targetResource"> 资源站
-            </label>
+            <label class="target-item"><input type="checkbox" id="targetDouban" checked> 豆瓣</label>
+            <label class="target-item"><input type="checkbox" id="targetResource"> 资源站</label>
           </div>
         </div>
 
-        <!-- 输入区 -->
         <div class="module">
           <div class="drop-zone" id="dropZone">
             <div class="drop-zone-content" id="dropContent">
@@ -57,7 +49,6 @@
           </div>
         </div>
 
-        <!-- 历史记录 -->
         <div class="module">
           <div class="module-title">
             <span class="title-text">历史</span>
@@ -71,7 +62,6 @@
     </div>
   </div>
 
-  <!-- 设置弹窗 -->
   <div class="modal-overlay" id="settingsModal" style="display:none">
     <div class="modal">
       <div class="modal-header">
@@ -99,154 +89,122 @@
   </div>
 
   <script>
-    let currentKeyword = '';
-    let searchHistory = JSON.parse(localStorage.getItem('douban-history') || '[]');
+    // ===== 状态 =====
+    const state = {
+      keyword: '',
+      history: JSON.parse(localStorage.getItem('douban-history') || '[]'),
+      targets: JSON.parse(localStorage.getItem('douban-targets') || '{"douban":true,"resource":false}'),
+      tencentId: localStorage.getItem('tencent-secret-id') || '',
+      tencentKey: localStorage.getItem('tencent-secret-key') || ''
+    };
 
-    // 检查是否已配置腾讯OCR
-    const hasTencentOCR = localStorage.getItem('tencent-secret-id') && localStorage.getItem('tencent-secret-key');
+    // ===== DOM =====
+    const $ = id => document.getElementById(id);
+    const el = {
+      searchInput: $('searchInput'), searchBtn: $('searchBtn'),
+      dropZone: $('dropZone'), dropContent: $('dropContent'),
+      fileInput: $('fileInput'), previewArea: $('previewArea'),
+      previewImage: $('previewImage'), ocrResult: $('ocrResult'),
+      clearImage: $('clearImage'), targetDouban: $('targetDouban'),
+      targetResource: $('targetResource'), historyList: $('historyList'),
+      clearHistory: $('clearHistory'), settingsBtn: $('settingsBtn'),
+      settingsModal: $('settingsModal'), closeSettings: $('closeSettings'),
+      inputSecretId: $('inputSecretId'), inputSecretKey: $('inputSecretKey'),
+      saveSettings: $('saveSettings')
+    };
 
-    // 加载保存的目标选择
-    const savedTargets = JSON.parse(localStorage.getItem('douban-targets') || '{"douban":true,"resource":false}');
-
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
-    const dropZone = document.getElementById('dropZone');
-    const dropContent = document.getElementById('dropContent');
-    const fileInput = document.getElementById('fileInput');
-    const previewArea = document.getElementById('previewArea');
-    const previewImage = document.getElementById('previewImage');
-    const ocrResult = document.getElementById('ocrResult');
-    const clearImage = document.getElementById('clearImage');
-    const targetDouban = document.getElementById('targetDouban');
-    const targetResource = document.getElementById('targetResource');
-    const historyList = document.getElementById('historyList');
-    const clearHistory = document.getElementById('clearHistory');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsModal = document.getElementById('settingsModal');
-    const closeSettings = document.getElementById('closeSettings');
-    const inputSecretId = document.getElementById('inputSecretId');
-    const inputSecretKey = document.getElementById('inputSecretKey');
-    const saveSettings = document.getElementById('saveSettings');
-
-    // 初始化设置
-    inputSecretId.value = localStorage.getItem('tencent-secret-id') || '';
-    inputSecretKey.value = localStorage.getItem('tencent-secret-key') || '';
-
-    // 设置弹窗
-    settingsBtn.addEventListener('click', () => settingsModal.style.display = 'flex');
-    closeSettings.addEventListener('click', () => settingsModal.style.display = 'none');
-    settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.style.display = 'none'; });
-
-    saveSettings.addEventListener('click', () => {
-      setTencentKeys(inputSecretId.value.trim(), inputSecretKey.value.trim());
-      settingsModal.style.display = 'none';
-      alert('设置已保存');
-    });
-
-    // 初始化目标选择状态
-    targetDouban.checked = savedTargets.douban;
-    targetResource.checked = savedTargets.resource;
-
-    // 保存目标选择
-    function saveTargets() {
-      localStorage.setItem('douban-targets', JSON.stringify({
-        douban: targetDouban.checked,
-        resource: targetResource.checked
-      }));
-    }
-
-    targetDouban.addEventListener('change', saveTargets);
-    targetResource.addEventListener('change', saveTargets);
-
+    // ===== 初始化 =====
+    el.targetDouban.checked = state.targets.douban;
+    el.targetResource.checked = state.targets.resource;
+    el.inputSecretId.value = state.tencentId;
+    el.inputSecretKey.value = state.tencentKey;
     renderHistory();
 
+    // ===== 分隔符解析（逗号/空格/换行/顿号/分号） =====
+    function parseKeywords(text) {
+      if (!text) return [];
+      // 用逗号、顿号、分号、换行分隔
+      const items = text.split(/[,，、;；\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+      return [...new Set(items)]; // 去重
+    }
+
+    // ===== 打开URL =====
     async function openUrl(url) {
-      try {
-        await window.electronAPI.openExternal(url);
-      } catch (err) {
-        console.error('打开链接错误:', err);
-      }
+      try { await window.electronAPI.openExternal(url); } catch (e) { console.error(e); }
     }
 
-    async function openDoubanSearch(url) {
-      try {
-        await window.electronAPI.openExternal(url);
-      } catch (err) {
-        console.error('打开搜索错误:', err);
-      }
-    }
-
-    searchBtn.addEventListener('click', () => doSearch(searchInput.value));
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        doSearch(searchInput.value);
-      }
-    });
-
-    // 防止设置弹窗中的输入框触发搜索
-    document.querySelectorAll('.setting-input').forEach(input => {
-      input.addEventListener('keydown', (e) => {
-        e.stopPropagation();
-      });
-    });
-
+    // ===== 搜索 =====
     function doSearch(text) {
       text = (text || '').trim();
       if (!text) return;
-      currentKeyword = text;
-      searchInput.value = text;
-      addHistory(text);
-      openSearch(text);
+
+      const keywords = parseKeywords(text);
+      if (keywords.length === 0) return;
+
+      // 每个关键词单独搜索
+      keywords.forEach(keyword => {
+        state.keyword = keyword;
+        addHistory(keyword);
+
+        if (el.targetDouban.checked) {
+          openUrl(`https://www.douban.com/search?q=${encodeURIComponent(keyword)}`);
+        }
+        if (el.targetResource.checked) {
+          openUrl(`https://www.xn--wcv59z.com/search?q=${encodeURIComponent(keyword)}&type=&mode=1`);
+        }
+      });
+
+      el.searchInput.value = keywords.join(', ');
     }
 
-    function openSearch(keyword) {
-      // 检查是否至少选择了一个目标
-      if (!targetDouban.checked && !targetResource.checked) {
-        alert('请至少选择一个搜索目标');
-        return;
-      }
+    // ===== 搜索按钮/回车 =====
+    el.searchBtn.addEventListener('click', () => doSearch(el.searchInput.value));
+    el.searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); doSearch(el.searchInput.value); }
+    });
 
-      // 打开豆瓣
-      if (targetDouban.checked) {
-        const url = `https://www.douban.com/search?q=${encodeURIComponent(keyword)}`;
-        openDoubanSearch(url);
-      }
+    // ===== 设置弹窗 =====
+    el.settingsBtn.addEventListener('click', () => el.settingsModal.style.display = 'flex');
+    el.closeSettings.addEventListener('click', () => el.settingsModal.style.display = 'none');
+    el.settingsModal.addEventListener('click', e => { if (e.target === el.settingsModal) el.settingsModal.style.display = 'none'; });
+    el.saveSettings.addEventListener('click', () => {
+      state.tencentId = el.inputSecretId.value.trim();
+      state.tencentKey = el.inputSecretKey.value.trim();
+      localStorage.setItem('tencent-secret-id', state.tencentId);
+      localStorage.setItem('tencent-secret-key', state.tencentKey);
+      el.settingsModal.style.display = 'none';
+      alert('设置已保存');
+    });
+    document.querySelectorAll('.setting-input').forEach(input => {
+      input.addEventListener('keydown', e => e.stopPropagation());
+    });
 
-      // 打开资源站
-      if (targetResource.checked) {
-        const url = `https://www.xn--wcv59z.com/search?q=${encodeURIComponent(keyword)}&type=&mode=1`;
-        openUrl(url);
-      }
+    // ===== 目标选择 =====
+    function saveTargets() {
+      state.targets = { douban: el.targetDouban.checked, resource: el.targetResource.checked };
+      localStorage.setItem('douban-targets', JSON.stringify(state.targets));
     }
+    el.targetDouban.addEventListener('change', saveTargets);
+    el.targetResource.addEventListener('change', saveTargets);
 
-    // 拖拽
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('drag-over');
+    // ===== 图片处理 =====
+    el.dropZone.addEventListener('dragover', e => { e.preventDefault(); el.dropZone.classList.add('drag-over'); });
+    el.dropZone.addEventListener('dragleave', () => el.dropZone.classList.remove('drag-over'));
+    el.dropZone.addEventListener('drop', e => {
+      e.preventDefault(); el.dropZone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type.startsWith('image/')) handleImage(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type.startsWith('image/')) {
-        handleImage(e.dataTransfer.files[0]);
-      }
-    });
-
-    dropZone.addEventListener('click', (e) => {
+    el.dropZone.addEventListener('click', e => {
       if (e.target.classList.contains('file-label') || e.target.closest('.file-label')) return;
       if (e.target.classList.contains('btn-clear') || e.target.closest('.btn-clear')) return;
-      fileInput.click();
+      el.fileInput.click();
     });
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) handleImage(e.target.files[0]);
-    });
+    el.fileInput.addEventListener('change', e => { if (e.target.files.length > 0) handleImage(e.target.files[0]); });
 
-    document.addEventListener('paste', async (e) => {
-      // 忽略设置弹窗中的粘贴
-      if (settingsModal.style.display === 'flex') return;
-      if (document.activeElement === searchInput) return;
+    // ===== 粘贴 =====
+    document.addEventListener('paste', async e => {
+      if (el.settingsModal.style.display === 'flex') return;
+      if (document.activeElement === el.searchInput) return;
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
@@ -260,45 +218,38 @@
       if (text && text.trim()) doSearch(text.trim());
     });
 
-    clearImage.addEventListener('click', (e) => {
+    el.clearImage.addEventListener('click', e => {
       e.stopPropagation();
-      previewArea.style.display = 'none';
-      dropContent.style.display = 'block';
-      previewImage.src = '';
-      ocrResult.textContent = '';
-      fileInput.value = '';
+      el.previewArea.style.display = 'none';
+      el.dropContent.style.display = 'block';
+      el.previewImage.src = '';
+      el.ocrResult.textContent = '';
+      el.fileInput.value = '';
     });
 
     async function handleImage(file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        previewImage.src = e.target.result;
-        previewArea.style.display = 'flex';
-        dropContent.style.display = 'none';
+      reader.onload = e => {
+        el.previewImage.src = e.target.result;
+        el.previewArea.style.display = 'flex';
+        el.dropContent.style.display = 'none';
       };
       reader.readAsDataURL(file);
 
-      ocrResult.textContent = '识别中...';
-      resultModule.style.display = 'block';
-      resultInfo.innerHTML = '<p>🔄 正在识别图片...</p>';
-
+      el.ocrResult.textContent = '识别中...';
       try {
         const base64 = await fileToBase64(file);
         const text = await doOCR(base64, file.type);
         if (text && text.trim().length > 1) {
           const cleaned = cleanText(text);
-          ocrResult.textContent = `识别结果: ${cleaned}`;
-          currentKeyword = cleaned;
-          searchInput.value = cleaned;
-          addHistory(cleaned);
-          openSearch(cleaned);
+          el.ocrResult.textContent = `识别结果: ${cleaned}`;
+          el.searchInput.value = cleaned;
+          doSearch(cleaned);
         } else {
-          ocrResult.textContent = '未能识别';
-          resultInfo.innerHTML = '<p style="color:#cc3333">❌ 未能识别文字</p>';
+          el.ocrResult.textContent = '未能识别';
         }
       } catch (err) {
-        ocrResult.textContent = '识别失败';
-        resultInfo.innerHTML = `<p style="color:#cc3333">❌ ${err.message}</p>`;
+        el.ocrResult.textContent = `识别失败: ${err.message}`;
       }
     }
 
@@ -311,156 +262,111 @@
       });
     }
 
-    // 腾讯云OCR配置
-    let tencentSecretId = localStorage.getItem('tencent-secret-id') || '';
-    let tencentSecretKey = localStorage.getItem('tencent-secret-key') || '';
-
-    // 腾讯云OCR API调用
+    // ===== 腾讯云OCR =====
     async function callTencentOCR(imgBase64) {
-      if (!tencentSecretId || !tencentSecretKey) {
-        throw new Error('请先配置腾讯云API密钥');
-      }
+      if (!state.tencentId || !state.tencentKey) throw new Error('请先配置腾讯云API密钥');
 
       const action = 'GeneralBasicOCR';
-      const service = 'ocr';
       const host = 'ocr.tencentcloudapi.com';
-      const region = 'ap-beijing';
-      const version = '2018-11-19';
-
-      const params = { ImageBase64: imgBase64 };
-      const body = JSON.stringify(params);
+      const body = JSON.stringify({ ImageBase64: imgBase64 });
       const timestamp = Math.floor(Date.now() / 1000);
       const date = new Date(timestamp * 1000).toISOString().split('T')[0];
 
-      // 签名算法
       async function hmac256(key, msg) {
-        const encoder = new TextEncoder();
-        const keyData = typeof key === 'string' ? encoder.encode(key) : key;
-        const msgData = encoder.encode(msg);
-        const cryptoKey = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-        const signature = await crypto.subtle.sign('HMAC', cryptoKey, msgData);
-        return new Uint8Array(signature);
+        const enc = new TextEncoder();
+        const k = typeof key === 'string' ? enc.encode(key) : key;
+        const cryptoKey = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        return new Uint8Array(await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(msg)));
       }
-
       async function sha256(msg) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(msg);
-        const hash = await crypto.subtle.digest('SHA-256', data);
+        const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
         return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
       }
 
       const ct = 'application/json; charset=utf-8';
-      const canonicalHeaders = `content-type:${ct}\nhost:${host}\nx-tc-action:${action.toLowerCase()}\n`;
-      const signedHeaders = 'content-type;host;x-tc-action';
-      const hashedPayload = await sha256(body);
-      const canonicalRequest = `POST\n/\n\n${canonicalHeaders}\n${signedHeaders}\n${hashedPayload}`;
+      const ch = `content-type:${ct}\nhost:${host}\nx-tc-action:${action.toLowerCase()}\n`;
+      const sh = 'content-type;host;x-tc-action';
+      const cr = `POST\n/\n\n${ch}\n${sh}\n${await sha256(body)}`;
+      const cs = `${date}/ocr/tc3_request`;
+      const sts = `TC3-HMAC-SHA256\n${timestamp}\n${cs}\n${await sha256(cr)}`;
+      const sig = Array.from(await hmac256(await hmac256(await hmac256(`TC3${state.tencentKey}`, date), 'ocr'), 'tc3_request')
+        .then ? await hmac256(await hmac256(await hmac256(`TC3${state.tencentKey}`, date), 'ocr'), 'tc3_request') : new Uint8Array(0)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const algorithm = 'TC3-HMAC-SHA256';
-      const credentialScope = `${date}/${service}/tc3_request`;
-      const hashedCanonical = await sha256(canonicalRequest);
-      const stringToSign = `${algorithm}\n${timestamp}\n${credentialScope}\n${hashedCanonical}`;
+      // Fix: compute signature properly
+      const sd = await hmac256(`TC3${state.tencentKey}`, date);
+      const ss = await hmac256(sd, 'ocr');
+      const sk = await hmac256(ss, 'tc3_request');
+      const sigBytes = await hmac256(sk, sts);
+      const signature = Array.from(sigBytes).map(b => b.toString(16).padStart(2, '0')).join('');
 
-      const secretDate = await hmac256(`TC3${tencentSecretKey}`, date);
-      const secretService = await hmac256(secretDate, service);
-      const secretSigning = await hmac256(secretService, 'tc3_request');
-      const signatureArray = await hmac256(secretSigning, stringToSign);
-      const signature = Array.from(signatureArray).map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const authorization = `${algorithm} Credential=${tencentSecretId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-      const response = await fetch(`https://${host}`, {
+      const resp = await fetch(`https://${host}`, {
         method: 'POST',
         headers: {
-          'Authorization': authorization,
-          'Content-Type': ct,
-          'Host': host,
-          'X-TC-Action': action,
-          'X-TC-Version': version,
-          'X-TC-Timestamp': String(timestamp),
-          'X-TC-Region': region
+          'Authorization': `TC3-HMAC-SHA256 Credential=${state.tencentId}/${cs}, SignedHeaders=${sh}, Signature=${signature}`,
+          'Content-Type': ct, 'Host': host,
+          'X-TC-Action': action, 'X-TC-Version': '2018-11-19',
+          'X-TC-Timestamp': String(timestamp), 'X-TC-Region': 'ap-beijing'
         },
-        body: body
+        body
       });
 
-      const result = await response.json();
-      const texts = (result.Response?.TextDetections || []).map(item => item.DetectedText);
-      return texts.join(' ');
+      const result = await resp.json();
+      return (result.Response?.TextDetections || []).map(i => i.DetectedText).join(' ');
     }
 
     async function doOCR(base64, mimeType) {
-      // 优先使用腾讯云OCR
-      if (tencentSecretId && tencentSecretKey) {
-        try {
-          return await callTencentOCR(base64);
-        } catch (e) {
-          console.error('腾讯OCR失败:', e);
-          // 降级到Tesseract.js
-        }
+      if (state.tencentId && state.tencentKey) {
+        try { return await callTencentOCR(base64); } catch (e) { console.error('腾讯OCR失败:', e); }
       }
-
       // 降级: Tesseract.js
       if (window.Tesseract) {
-        const result = await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng');
-        return result.data.text;
+        return (await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng')).data.text;
       }
       return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-        script.onload = async () => {
-          try {
-            const result = await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng');
-            resolve(result.data.text);
-          } catch (e) { reject(e); }
-        };
-        script.onerror = () => reject(new Error('无法加载OCR库'));
-        document.head.appendChild(script);
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = async () => { try { resolve((await window.Tesseract.recognize(`data:${mimeType};base64,${base64}`, 'chi_sim+eng')).data.text); } catch (e) { reject(e); } };
+        s.onerror = () => reject(new Error('无法加载OCR库'));
+        document.head.appendChild(s);
       });
     }
 
-    // 设置腾讯云密钥
-    function setTencentKeys(secretId, secretKey) {
-      tencentSecretId = secretId;
-      tencentSecretKey = secretKey;
-      localStorage.setItem('tencent-secret-id', secretId);
-      localStorage.setItem('tencent-secret-key', secretKey);
-    }
-
     function cleanText(text) {
-      return text.replace(/\s+/g, ' ').replace(/[「」『』【】《》\[\]\{\}]/g, '').trim().substring(0, 50);
+      return text.replace(/\s+/g, ' ').replace(/[「」『』【】《》\[\]\{\}]/g, '').trim().substring(0, 100);
     }
 
+    // ===== 历史记录 =====
     function addHistory(text) {
       const now = new Date();
       const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-      searchHistory.unshift({ text, time });
-      if (searchHistory.length > 20) searchHistory.pop();
-      localStorage.setItem('douban-history', JSON.stringify(searchHistory));
+      state.history.unshift({ text, time });
+      if (state.history.length > 20) state.history.pop();
+      localStorage.setItem('douban-history', JSON.stringify(state.history));
       renderHistory();
     }
 
-    // 删除单条历史
     function deleteHistory(index) {
-      searchHistory.splice(index, 1);
-      localStorage.setItem('douban-history', JSON.stringify(searchHistory));
+      state.history.splice(index, 1);
+      localStorage.setItem('douban-history', JSON.stringify(state.history));
       renderHistory();
     }
 
     function renderHistory() {
-      if (searchHistory.length === 0) {
-        historyList.innerHTML = '<p class="empty-hint">暂无记录</p>';
+      if (state.history.length === 0) {
+        el.historyList.innerHTML = '<p class="empty-hint">暂无记录</p>';
         return;
       }
-      historyList.innerHTML = searchHistory.map((item, index) =>
+      el.historyList.innerHTML = state.history.map((item, i) =>
         `<div class="history-item">
           <span class="history-text" onclick="doSearch('${item.text.replace(/'/g, "\\'")}')">${item.text}</span>
           <span class="history-time">${item.time}</span>
-          <span class="history-delete" onclick="deleteHistory(${index})" title="删除">✕</span>
+          <span class="history-delete" onclick="deleteHistory(${i})" title="删除">✕</span>
         </div>`
       ).join('');
     }
 
-    clearHistory.addEventListener('click', () => {
-      searchHistory = [];
+    el.clearHistory.addEventListener('click', () => {
+      state.history = [];
       localStorage.setItem('douban-history', '[]');
       renderHistory();
     });

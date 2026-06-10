@@ -1,46 +1,16 @@
 {
   "name": "douban-auto-stared",
   "version": "1.0.0",
-  "description": "豆瓣自动标记工具 - 输入文字或图片，自动搜索并标记豆瓣条目",
+  "description": "豆瓣自动标记工具",
   "main": "main.js",
   "scripts": {
     "start": "node start.js",
-    "dev": "node start.js --dev",
-    "build": "npx electron-builder --win",
-    "build:dir": "npx electron-builder --win --dir"
+    "dev": "node start.js --dev"
   },
-  "build": {
-    "appId": "com.douban.auto-stared",
-    "productName": "豆瓣自动标记",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "main.js",
-      "preload.js",
-      "start.js",
-      "icon.png",
-      "src/**/*"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "icon.png"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "豆瓣自动标记"
-    }
-  },
-  "dependencies": {
-    "cheerio": "^1.0.0-rc.12",
-    "tesseract.js": "^5.0.0"
-  },
+  "dependencies": {},
   "author": "BOYGAGA",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^33.0.0",
-    "electron-builder": "^24.0.0"
+    "electron": "^33.0.0"
   }
 }
