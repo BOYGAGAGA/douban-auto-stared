@@ -1,0 +1,23 @@
+{
+  "projectName": "douban-auto-stared",
+  "projectOwner": "BOYGAGAGA",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "BOYGAGAGA",
+      "name": "BOYGAGA",
+      "avatar_url": "https://github.com/BOYGAGAGA.png",
+      "profile": "https://github.com/BOYGAGAGA",
+      "contributions": [
+        "code",
+        "design",
+        "doc"
+      ]
+    }
+  ]
+}
