@@ -47,16 +47,8 @@ function parseKeywords(text) {
 }
 
 // ===== 打开URL =====
-async function openUrl(url) {
-  try {
-    if (window.ewvjs && window.ewvjs.api) {
-      await window.ewvjs.api.openExternal(url);
-    } else if (window.electronAPI) {
-      await window.electronAPI.openExternal(url);
-    } else {
-      window.open(url, '_blank');
-    }
-  } catch (e) { console.error(e); }
+function openUrl(url) {
+  window.open(url, '_blank');
 }
 
 // ===== 搜索 =====
@@ -144,13 +136,6 @@ document.addEventListener('paste', function(e) {
   }
   var text = e.clipboardData.getData('text/plain');
   if (text && text.trim()) doSearch(text.trim());
-});
-
-// ===== 截图快捷键 =====
-document.addEventListener('keydown', function(e) {
-  if (e.ctrlKey && e.key === 'v') {
-    // 标准粘贴处理已在paste事件中
-  }
 });
 
 el.clearImage.addEventListener('click', function(e) {
