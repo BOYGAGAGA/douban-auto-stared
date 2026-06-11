@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "豆瓣自动标记 - 标签分组",
+  "version": "1.0",
+  "description": "自动将豆瓣和资源站搜索标签页分组",
+  "permissions": ["tabs", "tabGroups"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
