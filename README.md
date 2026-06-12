@@ -1,6 +1,30 @@
-# 豆瓣自动标记
+<div align="center">
 
-批量搜索豆瓣和资源站的工具，支持图片识别、标签页自动分组。
+# 🔍 豆瓣自动标记
+
+**批量搜索豆瓣和资源站的工具，支持图片识别、标签页自动分组**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/BOYGAGAGA/douban-auto-stared/releases)
+[![Stars](https://img.shields.io/github/stars/BOYGAGAGA/douban-auto-stared.svg)](https://github.com/BOYGAGAGA/douban-auto-stared/stargazers)
+
+🔍 批量搜索 · 📷 图片识别 · 🌐 双站搜索 · 📑 标签分组 · 📝 搜索历史
+
+</div>
+
+---
+
+## 📖 目录
+
+- [3秒上手](#-3秒上手)
+- [能做什么](#-能做什么)
+- [标签页分组](#-标签页分组可选)
+- [隐私](#-隐私)
+- [更新日志](#-更新日志)
+- [贡献者](#-贡献者)
+- [许可](#-许可)
+
+---
 
 ## 🚀 3秒上手
 
@@ -43,6 +67,17 @@
 - ✅ 不收集任何信息
 - ✅ 图片在本地识别，不上传
 
+## 📋 更新日志
+
+详见 [release-notes.md](release-notes.md)
+
+### v1.0.0
+- ✅ 批量搜索功能
+- ✅ 图片识别搜索
+- ✅ 双站同时搜索
+- ✅ 标签页自动分组（扩展）
+- ✅ 搜索历史记录
+
 ## 👥 贡献者
 
 <table>
@@ -61,4 +96,12 @@
 
 ## 📄 许可
 
-MIT
+[MIT](LICENSE) © [BOYGAGA](https://github.com/BOYGAGAGA)
+
+---
+
+<div align="center">
+
+**如果觉得有用，请给个 ⭐ Star！**
+
+</div>
