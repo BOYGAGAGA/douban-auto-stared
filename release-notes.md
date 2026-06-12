@@ -6,7 +6,7 @@
 
 **第1步：下载**
 
-👉 [点我下载最新版](../../releases/latest/download/豆瓣自动标记.zip)
+👉 点击下方 `豆瓣自动标记.zip` 下载
 
 **第2步：解压**
 
@@ -32,7 +32,7 @@
 
 想让搜索结果自动分组？
 
-1. [下载扩展](../../releases/latest/download/extension.zip) 并解压
+1. 下载下方 `extension.zip` 并解压
 2. 打开 Edge 浏览器，地址栏输入 `edge://extensions/`
 3. 右下角开启「开发者模式」
 4. 点「加载已解压的扩展」→ 选解压出来的 `extension` 文件夹
@@ -42,23 +42,3 @@
 - ✅ 所有数据存在你自己电脑上
 - ✅ 不收集任何信息
 - ✅ 图片在本地识别，不上传
-
-## 👥 贡献者
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/BOYGAGAGA">
-        <img src="https://github.com/BOYGAGAGA.png" width="100px;" alt=""/>
-        <br />
-        <sub><b>BOYGAGA</b></sub>
-      </a>
-      <br />
-      <sub>🎨 设计 · 💻 开发</sub>
-    </td>
-  </tr>
-</table>
-
-## 📄 许可
-
-MIT
