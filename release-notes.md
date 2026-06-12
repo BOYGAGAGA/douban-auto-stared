@@ -42,3 +42,19 @@
 - ✅ 所有数据存在你自己电脑上
 - ✅ 不收集任何信息
 - ✅ 图片在本地识别，不上传
+
+## 👥 贡献者
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/BOYGAGAGA">
+        <img src="https://github.com/BOYGAGAGA.png" width="100px;" alt=""/>
+        <br />
+        <sub><b>BOYGAGA</b></sub>
+      </a>
+      <br />
+      <sub>🎨 设计 · 💻 开发</sub>
+    </td>
+  </tr>
+</table>
