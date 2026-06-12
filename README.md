@@ -6,7 +6,7 @@
 
 **第1步：下载**
 
-👉 [点我下载最新版](../../releases/latest/download/豆瓣自动标记.zip)
+👉 [点我下载最新版](../../releases/latest/download/douban-auto-stared.zip)
 
 **第2步：解压**
 
